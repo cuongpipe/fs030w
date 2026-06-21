@@ -1252,3 +1252,418 @@ function cgi_submit(val)
 
 </body>
 </html>
+
+
+html trang cấu hình wifi hiện trên máy: 
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title></title>
+<link rel="stylesheet" type="text/css" href="css/globals.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" type="text/css" href="css/lc_alerts.css">
+<link rel="stylesheet" type="text/css" href="css/lc_login.css">
+<link href="css/gb_styles.css" rel="stylesheet" type="text/css">
+<script>
+var BASE_PATH;
+var GB_ROOT_DIR ="images/";
+function fnopen_sendto(argTitle,argController)
+{
+	BASE_PATH = argController;
+	return GB_showCenter(argTitle,argController,430,500,'');
+	BASE_PATH = ""
+}
+
+
+function fnopen_new_contacts(argTitle,argController)
+{
+	BASE_PATH = argController;
+	return GB_showCenter(argTitle,argController,170,440,'');
+	//return GB_showCenter(argTitle,argController,465,570,'');
+	// return GB_showCenter(argTitle,argController,465,750,'');
+	BASE_PATH = ""
+}
+</script>
+<script type="text/javascript" src="language/js/home.js"></script>
+<script type="text/javascript" src="language/js/menu.js"></script>
+<script type="text/javascript" src="language/js/login.js"></script>
+<script type="text/javascript" src="language/js/fota_home.js"></script>
+<script type="text/javascript" src="misc/desktop_icon.js"></script>
+<script type="text/javascript" src="misc/desktop_icon_modem.js"></script>
+
+<script type="text/javascript" src="ui_js/AJS.js"></script>
+<script type="text/javascript" src="ui_js/AJS_fx.js"></script>
+<script type="text/javascript" src="ui_js/gb_scripts.js"></script>
+<script type="text/javascript" src="ui_js/jquery.js"></script>
+<script type="text/javascript" src="ui_js/myLib.js"></script>
+
+<script type="text/javascript" src="ui_js/ui_pc.js"></script>
+<script type="text/javascript" src="ui_js/jcookie.js"></script>
+<script type="text/javascript" src="ui_js/jquery.qtip.js"></script>
+<script type="text/javascript" src="js/globals.js"></script>
+<script type="text/javascript" src="js/lc_alerts.js"></script>
+
+<script type="text/javascript" src="js/page_shasow.js"></script>
+<script type="text/javascript" src="js/home_ajax.js"></script>
+<script type="text/javascript" src="js/lc_login.js"></script>
+<script type="text/javascript" src="js/language.js"></script>
+<script type="text/javascript" src="js/remote_management.js"></script>
+<script>
+nvram = {
+	sim_data : 'pin_disable,3,10',
+	modem_status: decodeHtml('sim_ready'), /* Dont delete */
+	apn_status: decodeHtml(''),
+	apn_list:'',/* Dont delete */
+	wlan_work_mode: decodeHtml('ap_ap'),
+	wifi_enable: decodeHtml('1'),
+	wifi_ap1_enable: decodeHtml('0'),
+	wifi_ap0_mode: decodeHtml('bgn'),
+	wifi_ap1_mode: decodeHtml('bgn'),
+	sc_work_mode_type: decodeHtml('0'), /* Modem type, if 1, disable wifi and router */
+    bluetooth_tether_mode: decodeHtml('0'),	
+    bluetooth_tether_mode_tmp: decodeHtml(''),
+	bluetooth_tether_gf_tmp: decodeHtml(''),
+	wcdma_modem_status: decodeHtml('lte'),
+	wcdma_plmn: decodeHtml('45202'),
+	fota_check_status : decodeHtml(''),
+	web_fota_status : decodeHtml(''),
+	fota_download_status : decodeHtml(''),
+    web_login_lock : decodeHtml('0'),//0 :enable
+    webui_lock_tmp : decodeHtml(''),
+	webui_lock_gf_tmp : decodeHtml(''),
+	rmc_enabled : decodeHtml('0'),
+	force_upgrade : decodeHtml('0'),
+ 	web_sfe_control: decodeHtml('1'),
+ 	csrftoken:'f0e45d79f9f7a9bc',
+	language: decodeHtml('en')
+};
+
+
+$(function(){
+	myLib.progressBar();
+});
+
+var lrand = Math.random();
+var sid = parseInt(lrand*1000000);
+//var session_id = "q~~{~";
+var session_id = "error";
+var downloading_upgrading = -1;
+var is_admin = 0;
+var is_send_web_gui = 0;
+var login_callback = "";   // 当用户登录后，页面回退到
+var settimeout_stop = 0;
+var is_connected = 'disconnected';
+var current_statistic = '';
+var current_statistic_time = 0;
+
+
+var flag_device_status_show = 0;       // 0:未显示；  1:显示
+//var flag_simcard_status_confirm = 0;   // 0:未显示过  1：已经显示过了
+var flag_adv_or_home = 0; // 0: home 1: advance
+
+var desk_settingsset_str  = "";
+
+//////////////////////////////////////////////////////////
+/* current device time add by lyy in 20121107 */
+var setInterval_load_timer, setInterval_ajax_get_current_time_format;    // for update time, add by lyy in 20121103
+var day=hour=minute=second=0;
+var new_time;   // year-month-day-week-hour-minute-second
+var current_show_time = new Array("1970", "01", "01", "3", "10", "10", "10");
+var current_show_time_str;
+var weekday = new Array(8);
+var alert_year, alert_month, alert_day, alert_hour, alert_minute, alert_second;
+
+/* session time add by lyy in 20121107 */
+var current_session_time = 0;
+var new_session_time = 0;
+var session_hour=session_minute=session_second=0;
+var current_show_session_time = new Array("10", "10", "10");  // hour:minute:second
+/* session time add by lyy in 20121107 */
+
+/* total time of device start, by lyy in 20121210 */
+var total_device_running_time = 0;
+var device_running_hour=device_running_minute=device_running_second=0;
+/* total time of device start, by lyy in 20121210 */
+
+
+
+var desktop_icon_data_val = desktop_icon_data;
+if (nvram.sc_work_mode_type == '1')    // if 1, disable wifi and router by lyy in 20121023
+{
+	desktop_icon_data_val = desktop_icon_modem_data;
+}
+else
+{
+	desktop_icon_data_val = desktop_icon_data;
+
+	ajax_get_current_time_format();   // for update time, add by lyy in 20121103
+}
+
+keep_alive_id = -1;
+
+//getxmlfile("misc/desktop.xml");                // Solve the IE home page displays incomplete BUG by lyy in 20120918
+function init()
+{
+	init_language();
+	//init_weekday();
+	get_wifi_state();
+
+	modem_pin_lock = 0;
+	setTimeout("ajax_get_wm_wcdma_data(false)",3000);
+	get_battery_info();
+	var url = location.href;
+	var dex = getParameter("type",url.replace(/%20/g," "));
+
+	if(nvram.web_login_lock != "1" && nvram.webui_lock_tmp != "1" && nvram.webui_lock_gf_tmp != "1")
+	{
+		url_session_autologin();  // for url or session autoLogin by lyy in 20130324
+	}
+	
+	//unlock_home_confirm();    
+	setLangList();
+	myLib.stopProgress();
+	setInterval_load_timer=setInterval("load_timer_setinterval()",1000);
+	setTimeout("load_timer_total_device_running_time()",2800);
+	/*setTimeout("ajax_init_pb_list('sim')",8000);      
+	setTimeout("ajax_init_pb_list('device')",10000);  
+	setTimeout("new_sms_tip_show()",9000);	
+	*/
+	if(nvram.web_login_lock != "1" && nvram.webui_lock_tmp != "1" && nvram.webui_lock_gf_tmp != "1")
+	{
+		lc_login_inint();
+	}
+	else
+	{
+		$("#ipt_admin_password").attr("disabled",true);
+		$("#ipt_rememberme").attr("disabled",true);
+		$("#login_ok").attr("disabled",true);
+	}
+	
+	creat_menu_list();
+	get_fota_force_upgrade();
+	get_auto_download_fota_status();
+	get_fota_up_check_status();
+	get_fota_download_status();
+	check_webui_login_lock();
+	
+	
+	if($.browser.android)
+	{
+	
+		 $("#lang").addClass("phone_p");
+	}
+
+	if(nvram.rmc_enabled == "1")
+	{
+		int_remote_control("");
+	}
+	
+}
+var init_language2 = function()
+{
+	lnauge_cheanged = true;
+	ajax_get_wm_wcdma_data(true);
+	//init_weekday();
+	E("login_ok").value  = getalert("alert_admin_login_button");
+	E("ipt_admin_password").title  = getalert("td_admin_password");
+	E("ipt_admin_password").placeholder  =  getalert("td_admin_password");
+
+}
+</script>
+<style>
+	.status_li li {
+		float: left;
+		list-style-type:none;
+		text-align:center;
+		height:32px;
+		margin-bottom:5px;
+
+	}
+	.status_li li img{
+		width:32px;
+		height:32px;
+	}
+	.status_div
+	{
+
+	}
+</style>
+</head>
+<body onload="getxmlfile(desktop_icon_data_val);getxml(language_home,language_login,language_menu,fota_home);" onmouseout="sendevent_m();" onclick="sendevent_c();">
+<div id="wrapper" class="line">
+	<!--img id="wrapper_img" style="position:absolute;width:768px;z-Index:-2; " src="images/login_801.png" /-->
+	<div class="line" style="border-bottom: #004499  solid 10px;">
+	<div class="line" style="margin-right:10px;margin-left:10px;">
+		<div class="s-9 l-5" style="margin-top:1em">
+			<div class="s-12 l-12 " id="logo">
+				<img id="logo_img" src="/images/logo.png" style="position:absolute;z-Index:0; ">
+			</div>
+			<div class="s-12 l-12 " style="margin-top:0.8em;">
+				<label style="font-size: 1.2em;font-style: italic;margin-left:0.5em">Mobile Router FS030W</label>
+			</div>
+		</div>
+		<div class="s-3 l-7" style="color:#004499;margin-top:1em">
+			<div class="s-12 l-12 ">
+				<div class="head_top_div">
+					<div style="position:relative;float:right;width:100px;">
+						<ul onclick="manual_logout()">
+							<li>
+									<div id="to_login" style="cursor: pointer; background: rgba(0, 68, 153, 0.92); font: 12px / 18px Arial; width: 80px; height: 20px;" onclick="manual_logout()">
+										<div id="title_login" style="color: rgb(255, 255, 255); margin: 5px; line-height: 20px; display: none;">Login</div>
+										<div id="title_logout" style="color: rgb(255, 255, 255); margin: 5px; line-height: 20px;">Logout</div>
+								   </div>
+							</li>
+						</ul>
+					</div>
+					<div style="position:relative;float:right;width:100px;">
+						<ul>
+							<li>
+								<div style=" cursor:pointer;background: rgba(0, 68, 153, 0.92);font: 12px/18px Arial; width:80px; height:20px;" onclick="download_userguide()">
+									<div id="td_help" style="color:#FFF;margin: 5px;line-height:20px">Help</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div style="position:relative;float:right;width:80px;">
+						<ul>
+							<li>
+								<div class="language" style="right: 18px;">
+									<input id="lang" class="input" type="text" readonly="readonly" value="" style="margin-right:5px;text-align: center">
+									<div id="language_list" class="lang_option"><span><a href="javascript:void(0)" onclick="javascript:changeLang('lang','jp')">日本語</a></span><span><a href="javascript:void(0)" onclick="javascript:changeLang('lang','en')">English</a></span><span><a href="javascript:void(0)" onclick="javascript:changeLang('lang','zh')">简体中文</a></span></div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div class="line" style="margin-right:10px;margin-left:10px;">
+		<div class="s-12 l-12 div_status" style="color:#004499;text-align:right;margin-bottom:1em;">
+			<div style="position:relative;float:right; " class="status_div">
+				<ul class="status_li" style="padding-left: 0px;">
+					<!--li><span id="fota_version_status" style="line-height:40px;font-size: 14px; color:#000; padding-right:3px"></span></li-->
+					<!--li><span id="sp_operatorname" style="line-height:40px;font-size: 14px; color:#000; padding-right:3px"></span></li-->
+					<li style=" padding-right:12px"><img id="img_signal" src="images/dynamic/signal/bar3.png"></li>
+					<li style=" padding-right:10px"><span id="sp_service_type" style="line-height:36px;font-size: 21px; color:#000; ">LTE</span></li>
+					<li style=" padding-right:15px"><img id="img_sim" src="images/dynamic/sim/sim_ok.png"></li>
+					<!--li ><span id="sp_roaming" style="display:none; line-height:36px;font-size: 16px; color:#000;padding-left:3px">R</span></li-->
+					<!--li ><img id="img_session"  style="display: none;padding-right:3px" src="images/dynamic/session/session.png"/></li-->
+
+					<li><img id="img_wifi" style="" src="images/dynamic/wifi/wifi.png"></li>
+					<li style=" padding-right:10px"><div id="txt_wifi_ssid1" style="line-height:16px;font-size: 11px; color:#000;text-align: left ">2.4G</div><div id="txt_wifi_ssid2" style="line-height:16px;font-size: 11px; color:#000;text-align: left">&nbsp;</div></li>
+					<li style=" padding-right:10px"><img id="img_bluetooth" src="images/dynamic/bluetooth/bluetooth.png" style="display: none;"></li>
+					<li><img id="img_battery" src="images/dynamic/battery/battery0.png"></li>
+					<li style=" padding-right:10px"><span id="txt_battery" style="line-height:35px;font-size: 14px; color:#000; padding-left:2px">0%</span></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	</div>
+	<div id="all_content_login" class="size-960 line" style="display: none;">
+		<div class="line ">
+			<div class="login_div">
+			<div class="s-10 l-7 center" style="margin-top:3.5em;" id="center_div">
+				<form class="customform" action="#">
+					<div class="margin">
+						<div class="line text_margin">
+							<div class="s-4 l-3" style="vertical-align:middle;line-height:2.5em;color:white;display:none;">
+								<label id="td_admin_username">User Name</label>
+							</div>
+							<div class="s-8 l-9" style="display:none;">
+								<input type="text" name="ipt_admin_username" id="ipt_admin_username" title="USERNAME" placeholder="USERNAME" value="admin">
+							</div>
+						</div>
+						<div class="line text_margin">
+							<div class="s-4 l-3" style="vertical-align:middle;line-height:2.5em;">
+								<label id="td_admin_password">Password</label>
+							</div>
+							<div class="s-8 l-9">
+								<input type="password" name="ipt_admin_password" id="ipt_admin_password" onkeydown="javascript:enterPassword(event)" size="15" maxlength="15" value="" title="Password" placeholder="Password">
+							</div>
+						</div>
+						<div class="line text_margin">
+							<div class="s-4 l-3">
+								<label>&nbsp;</label>
+							</div>
+							<div class="s-8 l-9">
+								<input id="ipt_rememberme" style="width:10px" type="checkbox" onclick="click_rememberme();" name="ipt_rememberme" checked="checked">
+								<label id="lb_remeber_me" name="lb_remeber_me">Remember me</label>
+							</div>
+						</div>
+						<div class="line text_margin">
+							<div class="s-12 l-12 center" style="margin-bottom:0.4em;">
+								<p id="error_info"></p>
+							</div>
+							<div class="s-12 l-3 center" id="login_panel" style="margin-top:3em;">
+								<input type="button" id="login_ok" value="Login">
+							</div>
+						</div>
+
+					</div>
+				</form>
+				<div class="s-12 l-12 center" style="display:none">
+					<p style="text-align:center;" id="login_product_name"></p>
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+
+	<div style="margin-left: 0px;" id="main">
+		<div id="phone_back" class="phone_back_control_hide" style="position:relative;float:left;width:80px;" onclick="phone_goto_menu()">
+			<div style=" cursor:pointer;background:url(../images/back2.png) no-repeat left bottom;font: 12px/18px Arial; width:35px; height:30px; margin-top: 5px ;margin-left: 10px">
+			</div>
+		</div>
+		<section>
+			<div id="content_div" class="content_div" style="">
+				<div class="line width_100">
+					<div id="div_content_left_menu" class="s-12 l-3 phone_control_show">
+						<div id="second_menu_bar">
+							<div class="second_menu">
+								<ul id="ui_second_menu"><li class="second_menu_submenu"><a><div id="lg_info_basic" class="adv_menu_icon_info_nn font_icon">Basic Information</div></a><ul id="adv_wlan_sub"><li onclick="gvim_page('user/lct_status_info.html');third_css_stop(this);"><a id="lg_status">Information</a></li><li onclick="gvim_page('user/lct_router_device_list.html');third_css_stop(this);"><a id="lg_router_device_list">Device List</a></li></ul></li><li class="second_menu_submenu" id="li_sim_set" onclick="gvim_page('user/lct_simple_set.html');second_css_stop(this);"><a href="javascript:;"><div id="lg_device_simple" class="adv_menu_icon_qset_nn font_icon">Simple Settings</div></a></li><li class="second_menu_submenu"><a><div id="lg_adv_wan" class="adv_menu_icon_wan_nn font_icon">Mobile Network Settings</div></a><ul id="adv_router_sub"><li onclick="gvim_page('user/lct_internet_connect.html');third_css_stop(this);"><a id="lg_profile">Connection Settings</a></li><li onclick="gvim_page('user/lct_internet_netsetting.html');third_css_stop(this);"><a id="lg_netsetting">Network Settings</a></li><li onclick="gvim_page('user/lct_internet_traffic.html');third_css_stop(this);"><a id="lg_system_traffic_set">Data Usage</a></li><li onclick="gvim_page('user/lct_internet_pin.html');third_css_stop(this);"><a id="lg_pin">PIN Setting</a></li></ul></li><li class="second_menu_submenu"><a><div id="lg_adv_wifi" class="adv_menu_icon_wifi_nn font_icon">LAN Settings</div></a><ul id="adv_service_sub" class="show-aside-ul"><li onclick="gvim_page('user/lct_wifi_setting.html?type=0');third_css_stop(this);" class="active-item"><a id="lg_wifi_setting">Primary WLAN Setting</a></li><li onclick="gvim_page('user/lct_wifi_setting.html?type=1');third_css_stop(this);"><a id="lg_wifi_5setting">Secondary WLAN Setting</a></li><li onclick="gvim_page('user/lct_wifi_macfilter.html');third_css_stop(this);"><a id="lg_wifi_macfilter">Primary MAC filtering</a></li><li onclick="gvim_page('user/lct_wifi_macfilter.html?type=ap1');third_css_stop(this);"><a id="lg_wifi_ssid2_macfilter">Secondary MAC filtering</a></li><li onclick="gvim_page('user/lct_wifi_wps.html');third_css_stop(this);"><a id="lg_wifi_wps">WPS</a></li><li onclick="gvim_page('user/lct_router_lan.html');third_css_stop(this);"><a id="lg_router_lan">DHCP</a></li><li onclick="gvim_page('user/lct_tether_usb.html');third_css_stop(this);"><a id="lg_usb_tether">USB Tethering</a></li><li onclick="gvim_page('user/lct_tether_bluetooth.html');third_css_stop(this);"><a id="lg_bluetooth_tether">Bluetooth Tethering</a></li></ul></li><li class="second_menu_submenu"><a><div id="sp_adv_router" class="adv_menu_icon_lan_nn font_icon">Router Settings</div></a><ul id="adv_service_sub"><li onclick="gvim_page('user/lct_router_ipfilter.html');third_css_stop(this);"><a id="lg_router_ipfilter">IP Filtering</a></li><li onclick="gvim_page('user/lct_router_port_forward.html');third_css_stop(this);"><a id="lg_router_port_forward">Port mapping</a></li><li onclick="gvim_page('user/lct_router_dmz.html');third_css_stop(this);"><a id="lg_router_dmz">DMZ</a></li><li onclick="gvim_page('user/lct_router_basic.html');third_css_stop(this);"><a id="lg_router_basic">NAT</a></li></ul></li><li class="second_menu_submenu" onclick="gvim_page('user/lct_ethernet_setting.html');second_css_stop(this);"><a href="javascript:;"><div id="lg_adv_ethernet" class="adv_menu_icon_cradle_nn font_icon">Cradle Setting</div></a></li><li class="second_menu_submenu"><a><div id="lg_adv_system" class="adv_menu_icon_set_nn font_icon">System Settings</div></a> <ul id="adv_system_sub"><li onclick="gvim_page('user/lct_system_setting.html');third_css_stop(this);"><a id="lg_system_set">Login Password</a></li><li onclick="gvim_page('user/lct_system_mode_setting.html');third_css_stop(this);"><a id="lg_system_mode_set">Display Settings</a></li><li onclick="gvim_page('user/lct_system_sleep.html');third_css_stop(this);"><a id="lg_system_work_mode">Sleep</a></li><li onclick="gvim_page('user/lct_system_eco.html');third_css_stop(this);"><a id="lg_system_eco">Charge Settings</a></li><li onclick="gvim_page('user/lct_system_ntp_address.html');third_css_stop(this);"><a id="lg_system_ntp_address">Time Settings</a></li><li onclick="gvim_page('user/lct_system_config.html');third_css_stop(this);"><a id="lg_system_config">Backup and Restore</a></li><li onclick="gvim_page('user/lct_system_sfe.html');third_css_stop(this);"><a id="lg_system_sfe">SFE Settings</a></li><li onclick="gvim_page('user/lct_system_reset.html');third_css_stop(this);"><a id="lg_system_reset">Factory Reset</a></li><li onclick="gvim_page('user/lct_system_restart.html');third_css_stop(this);"><a id="lg_system_restart">Restart</a></li></ul></li><li class="second_menu_submenu"><a><div id="lg_system_update" class="adv_menu_icon_update_nn font_icon">Software Update</div></a><ul id="adv_update_sub"><li onclick="gvim_page('user/lct_firmware_update.html');third_css_stop(this);"><a id="lg_system_web_update">Offline Update</a></li><li onclick="gvim_page('user/lct_system_fota.html');third_css_stop(this);"><a id="lg_system_fota">Online Update</a></li></ul></li></ul>
+							</div>
+						</div>
+					</div>
+					<div id="main_content" class="s-12 l-9 phone_control_hide">
+						<iframe id="mainframe" src="user/lct_wifi_setting.html?type=0?id=dddd" allowtransparency="true" marginwidth="0" framespacing="0" marginheight="0" name="mainframe" frameborder="0" noresize="" scrolling="no" height="870px" vspale="0" width="96%" style="margin-top:10px;margin-left:2px;"></iframe>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<div class="line">
+			<div class="s-12 l-12" id="product_name" style="display:none"></div>
+		</div>
+		<footer class="line" style="display:none">
+			<div class="s-12 l-6 center" style="text-align:center;color:white;font-weight:100%;font-size:80%;margin-top:0em;">
+				<p id="copy_right"></p>
+			</div>
+		</footer>
+	</div>
+
+</div>
+
+<form id="lct_language_change" name="lct_language_change" method="post" action="/cgi-bin/ajax_set.cgi">
+	<input type="hidden" id="webpage" name="webpage" value="/home.html">
+	<input type="hidden" id="which_cgi" name="which_cgi" value="language_change">
+    <input type="hidden" id="language" name="language" value="en">
+    <input type="hidden" name="request_token" value="4fb57fc087c3ac58">
+</form>
+<div id="div_connect_lost" class="hide" style="width:389px; z-index:10001; top:50%; height:92px;left: 50%;margin-left: -198px;margin-top: -43px; display:none;">
+    <p align="right"></p>
+    <p style="font-size:12pt; font-weight:bolder; width:369px; padding:20px;"><span id="td_alert_connectlost">Connection to device has been lost. Close this window and try again.</span></p>
+</div>
+
+
+</body></html>
+
+
+
+
+
+
+
+
