@@ -1,0 +1,1254 @@
+
+khi thaó sim nút bật 5g không bị disable đi vẫn bật bình thường và đây là payload:
+webpage=%2Fuser%2Flct_reboot_process.html%3Fid%3Dwifi_diconnect%26restart%3Dap0%26token%3D7a248cb5aa4c3129&which_cgi=wifi_setting&wifi_type=0&wifi_wep_password=0&wifi_interface=anc&wifi_dfs_mode=1&request_token=7a248cb5aa4c3129&wifi_support=1&wifi_enable=1&wifi_ssidbroadcast=1&wifi_ssid=FS030W_5G&wifi_interface_type=anc_1&wifi_reg_interface_2=b&wifi_reg_interface_5=anc&wifi_reg_domain=JP&wifi_bandwidth=3&wifi_channel=0&wifi_bintval=100&wifi_max_sta=7&wifi_securitymode=3208%2C8&wifi_password=0386744127&rt_wifi_keyFormat=1
+
+trang cài đặt wifi khi tháo sim:
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+<link rel="stylesheet" type="text/css" href="../css/globals.css">
+<link href="../css/user2.css" rel="stylesheet" />
+<script type="text/javascript"  src="../language/js/wifi_setting.js"></script>
+<script type="text/javascript"  src="../language/js/wifi_security.js"></script>
+<script type="text/javascript"  src="../language/js/route_js_alert.js"></script>
+
+<script type="text/javascript" src="../ui_js/jquery.js" ></script>
+<SCRIPT type="text/javascript" src="../ui_js/jquery.qtip.js"></SCRIPT>
+<script type="text/javascript" src="../js/globals.js"></script>
+<script type="text/javascript" src="../js/check.js" ></script>
+<script type="text/javascript" src="../js/check_router.js"></script>
+<script type="text/javascript" src="../js/check_wifi.js" ></script>
+<script type="text/javascript"  src="../js/lc_alerts.js"></script>
+<title> WiFi Network Setting </title>
+<script type='text/javascript'>
+nvram = {
+	http_id: '245147',
+
+	wifi_support: '1',     // '',	    // nm_wifi_support	// 总开关
+	
+	wifi_enable: decodeHtml('1'), 	    // wifi1开关	
+	wifi_mode: decodeHtml('anc'),
+	wifi_channel: decodeHtml('0'),
+	wifi_bintval: decodeHtml('100'),
+	wifi_reg_dom: decodeHtml('JP'),
+	wifi_band_width: decodeHtml('3'),	
+	wifi_ssidbroadcast: decodeHtml('1'),
+	wifi_max_sta: decodeHtml('7'), 
+	wifi_max_station_support: decodeHtml('15'),
+	wifi_securitymode: decodeHtml('3208,8'),
+	wifi_password: decodeHtml("0386744127"), 
+	wifi_wep_password: decodeHtml(""), 
+	wifi_wps_enable: decodeHtml('1'),
+	wifi_dfs_mode: decodeHtml('1'),//1: indoor, and DFS disable; 6: enable radar detetct
+	wcdma_modem_status: decodeHtml('no_service'),
+	wcdma_plmn: decodeHtml(''),
+	language : decodeHtml('en')
+};
+
+nvram_ap1 = {
+
+	wifi_support: '1', //'',				
+	wifi_enable: decodeHtml('0'),	// ssid1
+	wifi_enable_s0: decodeHtml('1'),
+	wifi_mode: decodeHtml('bgn'),
+	wifi_channel: decodeHtml('0'),
+	wifi_bintval: decodeHtml('100'),
+	wifi_reg_dom: decodeHtml('JP'),
+	wifi_band_width: decodeHtml('1'),	
+	wifi_ssidbroadcast: decodeHtml('1'),	
+	wifi_max_sta: decodeHtml('7'),					
+	wifi_max_station_support: decodeHtml('15'),	
+	wifi_securitymode: decodeHtml('3208,8'),
+	wifi_password: decodeHtml("88285485"), 
+	wifi_wep_password: decodeHtml(""), 
+	wifi_wps_enable: decodeHtml('1'),
+	wifi_dfs_mode_s0: decodeHtml('1'),//1: indoor, and DFS disable; 6: enable radar detetct
+	wifi_dfs_mode: decodeHtml('0'),//1: indoor, and DFS disable; 6: enable radar detetct
+	wcdma_modem_status: decodeHtml('no_service'),
+	wcdma_plmn: decodeHtml(''),
+	language: decodeHtml('en'),
+	http_id: '245147'
+};
+
+var wep_format_lyy='hex';
+var wep_format_radio_show = 0;	// 0: 非WEP加密方式，不需要显示name=rt_wifi_keyFormat
+var ap_type;
+var ap_disable_enable;
+var ap1_disable_enable;
+var max_sta_t;
+var max_sta0;
+
+function init()
+{  	
+    ap_type = (getParameter("type",(location.href).replace(/%20/g," "))).split("=")[1];
+	ap_disable_enable = nvram.wifi_enable;
+	ap1_disable_enable = nvram_ap1.wifi_enable;
+	max_sta0 = nvram.wifi_max_sta;
+
+    if("1" == ap_type)
+	{
+		E("wifi_type").value = "1";
+		$("#tr_wifiinterface_56").hide();
+		nvram = nvram_ap1;
+		$("#lg_wifi_setting").html(getalert('lg_wifi_5setting'));
+		var tmp_url = "/user/lct_reboot_process.html?id=wifi_diconnect&restart=ap1&token="+document.lct_wifi_network_form.request_token.value;
+		document.lct_wifi_network_form.webpage.value = tmp_url;
+		E("wifi_reg_domain").value = nvram.wifi_reg_dom;
+		wifi_ssid_value(1);
+
+	}
+	else
+	{
+		E("webpage").value = "/user/lct_reboot_process.html?id=wifi_diconnect&restart=ap0&token="+document.lct_wifi_network_form.request_token.value;
+		E("wifi_reg_domain").value = nvram.wifi_reg_dom;
+		wifi_ssid_value(0);		
+	}
+
+	{
+		var flag_show_5G = 0;
+		var NCC_Janpan_Operator = "440";
+
+		if( nvram.wcdma_plmn=="")
+		{
+			flag_show_5G = 1;
+		}
+		else
+		{
+			{
+				if (nvram.wcdma_plmn.indexOf(NCC_Janpan_Operator) == 0)
+				{
+					flag_show_5G = 1;
+				}
+			}
+		}
+				
+		if (flag_show_5G == 0)
+		{			
+			if(nvram.wifi_mode == "anc")
+			{
+				$("input[name=wifi_interface_type][value="+"bgn"+"]").attr("checked",'checked');				
+				E("wifi_reg_interface_2").value = "bgn";
+				$("#tr_wifiinterface_2").hide();
+				$("#tr_wifiinterface_5g").show();
+			}
+			else
+			{
+				$("#tr_wifiinterface_2").show();
+				$("#tr_wifiinterface_5g").hide();
+				E("wifi_reg_interface_2").value = nvram.wifi_mode;
+			}
+			$("input[name=wifi_interface_type][value="+"bgn"+"]").attr("checked",'checked');
+			$("#rt_wifi_ssidinterface_5_1").attr("disabled","disabled");
+			$("#rt_wifi_ssidinterface_5_2").attr("disabled","disabled");
+			$("#rt_wifi_ssidinterface_5_4").attr("disabled","disabled");
+		}
+		else
+		{			
+			if(nvram.wifi_mode == "anc")
+			{
+				if(nvram.wifi_dfs_mode == "1")
+				{
+					$("input[name=wifi_interface_type][value="+"anc_1"+"]").attr("checked",'checked');
+				}
+				else if(nvram.wifi_dfs_mode == "2")
+				{
+					$("input[name=wifi_interface_type][value="+"anc_2"+"]").attr("checked",'checked');
+				}
+				else if(nvram.wifi_dfs_mode == "4")
+				{
+					$("input[name=wifi_interface_type][value="+"anc_4"+"]").attr("checked",'checked');
+				}
+				$("#tr_wifiinterface_2").hide();
+				$("#tr_wifiinterface_5g").show();				
+				E("wifi_reg_interface_5").value = "anc";
+			}
+			else
+			{	
+				$("input[name=wifi_interface_type][value="+"bgn"+"]").attr("checked",'checked');
+				$("#tr_wifiinterface_2").show();
+				$("#tr_wifiinterface_5g").hide();				
+				E("wifi_reg_interface_2").value = nvram.wifi_mode;
+			}						
+		}
+	}
+	E("wifi_interface").value = nvram.wifi_mode;
+	$("input[name=wifi_support][value="+nvram.wifi_support+"]").attr("checked",'checked');
+	$("input[name=wifi_enable][value="+nvram.wifi_enable+"]").attr("checked",'checked');
+    $("input[name=wifi_ssidbroadcast][value="+nvram.wifi_ssidbroadcast+"]").attr("checked",'checked');
+	$("#wifi_securitymode").val(nvram.wifi_securitymode);
+	max_sta_t = nvram.wifi_max_sta;
+	if(parseInt(max_sta0) > 15 && ap1_disable_enable == "0")
+	{
+		if("1" != ap_type)
+		{
+			max_sta_t = 15;
+		}
+	}
+	
+	dispaly_band_width();
+	wifi_switch_change();
+	E("wifi_bintval").value = nvram.wifi_bintval;
+	E("wifi_bandwidth").value = nvram.wifi_band_width;
+	if($("input[name=wifi_support][checked]").val() =="1")
+	{
+		$('#tb_wifi_content').show();
+	}
+	else
+	{
+		$('#tb_wifi_content').hide();
+	}
+	
+	init_language();
+
+	if("0" == ap_type)
+	{
+		window.top.control_page("ssid1");
+	}
+	else
+	{
+		window.top.control_page("ssid2");
+	}
+  
+  	window.parent.lct_language_change.request_token.value = document.lct_wifi_network_form.request_token.value;
+	window.parent.nvram.csrftoken = document.lct_wifi_network_form.request_token.value;
+}
+
+var init_language2 = function()
+{
+    E("wifi_channel")[0].text = getalert("opt_wifi_channel_auto");	
+ 	ap_type = (getParameter("type",(location.href).replace(/%20/g," "))).split("=")[1];
+	if("1" == ap_type)
+	{
+		$("#lg_wifi_setting").html(getalert('lg_wifi_5setting'));
+	}
+}  
+</script>
+<style type="text/css">
+	.radio_span {display:-moz-inline-box;display:inline-block; width:80px; }
+</style>
+</head>
+
+<body onload="getxml(language_wifi_setting,language_wifi_security,language_route_js_alert,window.top.language_menu)">
+<div id="user_all"  onkeydown="javascript:capchar(event)" style="padding:0 1em 0 1em;">
+	<div id="user_title">
+		<div class="line" >
+			<div class="s-12 l-7 ">
+				<label align="left" class="title_name " id="lg_wifi_setting" ></label>
+			</div>
+		</div>
+	</div>
+	<div id="user_data">
+	<form class="customform" id="lct_wifi_network_form" name="lct_wifi_network_form" method="post" action="/cgi-bin/apply.cgi" onsubmit="return checkForm();">
+	<input type="hidden" id="webpage" name="webpage" value="/user/lct_reboot_process.html?id=wifi_diconnect&restart=ap0">
+	<input type="hidden" name="which_cgi" value="wifi_setting">
+	<input type="hidden" id="wifi_type" name="wifi_type" value='0'>
+	<input type="hidden" id="wifi_wep_password" name="wifi_wep_password" value='0'>
+	<input type="hidden" id="wifi_interface" name="wifi_interface" value='bgn'>
+	<input type="hidden" id="wifi_dfs_mode" name="wifi_dfs_mode" value='0'>
+	<input type="hidden" name="request_token" value="52e89a30acabaab4">
+    <div id="user_table">
+		<div class="line" style="display:none;">
+			<div class="margin">
+				<div id="tr_wifi_support">				    
+					<div class="s-12 l-5 line_form">
+		                <label class="name" id="td_wifi_support"></label>
+		            </div>
+					<div class="s-12 l-6">
+						<input id="ipt_wifi_support_en" name="wifi_support" onclick="wifi_support_click(1);" type="radio" value="1" /><span id="sp_wifi_support_en" ></span>
+						<input id="ipt_wifi_support_dis" name="wifi_support" onclick="wifi_support_click(0);" type="radio" value="0" /><span id="sp_wifi_support_dis"></span>
+					</div>									
+				</div>	
+			</div>
+        </div>
+	  
+        <div id="tb_wifi_content" class="line">
+	        <div class="margin">				
+				<div class="line">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_wifi_ssid_switch"></label>
+		            </div>
+					<div class="s-12 l-6 line_form">
+				        <input id="ipt_wifi_en"  name="wifi_enable" type="radio" value="1" onclick="wifi_switch_change()"/> <span id="sp_wifi_ssid_en" class="radio_span"></span>
+						<input id="ipt_wifi_dis" name="wifi_enable" type="radio" value="0" onclick="wifi_switch_change()"/> <span id="sp_wifi_ssid_dis" class="radio_span"></span>
+					</div>					
+				</div>
+				<div class="line" id="tr_ssid_broad" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifi_ssidbroadcast"></label>
+		            </div>
+                    <div class="s-12 l-6 line_form">
+						<input id="rt_wifi_ssidbroadcast_en" name="wifi_ssidbroadcast" type="radio" value="1" /> <span id="td_rt_wifi_ssidbroadcasten" class="radio_span"></span>
+						<input id="rt_wifi_ssidbroadcast_dis" name="wifi_ssidbroadcast" type="radio" value="0"/> <span id="td_rt_wifi_ssidbroadcastdis" class="radio_span"></span>
+					</div>									
+				</div>
+				<div class="line" id="tr_ssid_wifissid" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifissid"></label>
+		            </div>
+					<div class="s-12 l-5 line_form">
+						<bdo dir="ltr">
+							<input id="wifi_ssid" name="wifi_ssid" style="IME-MODE:disabled;" maxlength="32"  class="text_alignltr"/>
+						</bdo>
+		            </div>
+					<div class="s-12 l-0">
+		                <a src="#" id="help_wifissid"><img  src="../images/help.png" width="30px"  height="30px" /></a>
+		            </div>
+				</div>
+				<div class="line" id="tr_wifiinterface" style="display:none">
+				    <div class="s-12 l-5 line_form" >
+		                <label class="name" id="td_rt_wifiinterface"></label>
+		            </div>
+				    <div class="s-12 l-6 line_form">
+						<input id="rt_wifi_ssidinterface_2" name="wifi_interface_type" type="radio" value="bgn" onclick="wifi_frequency_change(1)"/> <span id="td_rt_wifi_interface_24" class="radio_span"></span>
+						<input id="rt_wifi_ssidinterface_5_1" name="wifi_interface_type" type="radio" value="anc_1" onclick="wifi_frequency_change(1)"/> <span id="td_rt_wifi_interface_51" class="radio_span" ></span>
+					</div>
+				</div>
+				<div class="line" id="tr_wifiinterface_56" style="display:none">
+					<div class="s-12 l-5 line_form" >
+						<label class="name" >&nbsp;</label>
+					</div>
+					<div class="s-12 l-6 line_form">
+						<input id="rt_wifi_ssidinterface_5_2" name="wifi_interface_type" type="radio" value="anc_2" onclick="wifi_frequency_change(1)"/> <span id="td_rt_wifi_interface_52" class="radio_span" ></span>
+						<input id="rt_wifi_ssidinterface_5_4" name="wifi_interface_type" type="radio" value="anc_4" onclick="wifi_frequency_change(1)"/> <span id="td_rt_wifi_interface_54" class="radio_span" ></span>
+
+					</div>
+				</div>
+				<div class="line" id="tr_wifiinterface_2" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifiinterface_2"></label>
+		            </div>
+					<div class="s-12 l-5 line_form" >
+		                <select id="wifi_reg_interface_2" name="wifi_reg_interface_2" class="sel_long">
+							<option value="b" id="sp_wifi_80211mode_b"></option>							
+							<option value="bg" id="sp_wifi_80211mode_bg"></option>
+							<option value="bgn" id="sp_wifi_80211mode_bgn"></option>
+						</select>						
+		            </div>	
+				</div>
+				<div class="line" id="tr_wifiinterface_5g" style="display:none">
+				    <div class="s-12 l-5 line_form" >
+		                <label class="name" id="td_rt_wifiinterface_5"></label>
+		            </div>
+					<div class="s-12 l-5 line_form" >
+		                <select id="wifi_reg_interface_5" name="wifi_reg_interface_5" class="sel_long">
+							<option value="anc" id="sp_wifi_80211mode_anc"></option>
+						</select>						
+		            </div>	
+				</div>	
+				<div class="line" id="tr_wifiregdom" style="display:none">
+				    <div class="s-12 l-5 line_form" >
+		                <label class="name" id="td_rt_wifiregdom"></label>
+		            </div>	
+                    <div class="s-12 l-5 line_form">						
+						<select id="wifi_reg_domain" name="wifi_reg_domain" class="sel_long" onchange="displayChannel();" >
+							<option value="AL" id="opt_al"></option>
+							<option value="DZ" id="opt_dz"></option>
+							<option value="AD" id="opt_ad"></option>
+							<option value="AR" id="opt_ar"></option>
+							<option value="AM" id="opt_am"></option>
+							<option value="AU" id="opt_au"></option>
+							<option value="AT" id="opt_at"></option>
+							<option value="AZ" id="opt_az"></option>
+							<option value="BH" id="opt_bh"></option>
+							<option value="BY" id="opt_by"></option>
+							<option value="BE" id="opt_be"></option>
+							<option value="BZ" id="opt_bz"></option>
+							<option value="BO" id="opt_bo"></option>
+							<option value="BA" id="opt_ba"></option>
+							<option value="BR" id="opt_br"></option>
+							<option value="BN" id="opt_bn"></option>
+							<option value="BG" id="opt_bg"></option>
+							<option value="CA" id="opt_ca"></option>
+							<option value="CL" id="opt_cl"></option>
+							<option value="CN" id="opt_cn"></option>
+							<option value="TW" id="opt_tw"></option>
+							<option value="CO" id="opt_co"></option>
+							<option value="CR" id="opt_cr"></option>
+							<option value="HR" id="opt_hr"></option>
+							<option value="CY" id="opt_cy"></option>
+							<option value="CZ" id="opt_cz"></option>
+							<option value="DK" id="opt_dk"></option>
+							<option value="DO" id="opt_do"></option>
+							<option value="EC" id="opt_ec"></option>
+							<option value="EG" id="opt_eg"></option>
+							<option value="SV" id="opt_sv"></option>
+							<option value="EE" id="opt_ee"></option>
+							<option value="FI" id="opt_fi"></option>
+							<option value="FR" id="opt_fr"></option>
+							<option value="GE" id="opt_ge"></option>
+							<option value="DE" id="opt_de"></option>
+							<option value="GR" id="opt_gr"></option>
+							<option value="GT" id="opt_gt"></option>
+							<option value="HN" id="opt_hn"></option>
+							<option value="HK" id="opt_hk"></option>
+							<option value="HU" id="opt_hu"></option>
+							<option value="IS" id="opt_is"></option>
+							<option value="IN" id="opt_in"></option>
+							<option value="ID" id="opt_id"></option>
+							<option value="IR" id="opt_ir"></option>
+							<option value="IE" id="opt_ie"></option>
+							<option value="IL" id="opt_il"></option>
+							<option value="IT" id="opt_it"></option>
+							<option value="JM" id="opt_jm"></option>
+							<option value="JP" id="opt_jp"></option>
+							<option value="JO" id="opt_jo"></option>
+							<option value="KZ" id="opt_kz"></option>
+							<option value="KP" id="opt_kp"></option>
+							<option value="KR" id="opt_kr"></option>
+							<option value="KW" id="opt_kw"></option>
+							<option value="LV" id="opt_lv"></option>
+							<option value="LB" id="opt_lb"></option>
+							<option value="LI" id="opt_li"></option>
+							<option value="LT" id="opt_lt"></option>
+							<option value="LU" id="opt_lu"></option>
+							<option value="MO" id="opt_mo"></option>
+							<option value="MK" id="opt_mk"></option>
+							<option value="MY" id="opt_my"></option>
+							<option value="MT" id="opt_mt"></option>
+							<option value="MX" id="opt_mx"></option>
+							<option value="MD" id="opt_md"></option>
+							<option value="MC" id="opt_mc"></option>
+							<option value="ME" id="opt_me"></option>
+							<option value="MA" id="opt_ma"></option>
+							<option value="NP" id="opt_np"></option>
+							<option value="NL" id="opt_nl"></option>
+							<option value="AN" id="opt_an"></option>
+							<option value="NZ" id="opt_nz"></option>
+							<option value="NO" id="opt_no"></option>
+							<option value="OM" id="opt_om"></option>
+							<option value="PK" id="opt_pk"></option>
+							<option value="PA" id="opt_pa"></option>
+							<option value="PG" id="opt_pg"></option>
+							<option value="PE" id="opt_pe"></option>
+							<option value="PH" id="opt_ph"></option>
+							<option value="PL" id="opt_pl"></option>
+							<option value="PT" id="opt_pt"></option>
+							<option value="PR" id="opt_pr"></option>
+							<option value="QA" id="opt_qa"></option>
+							<option value="RO" id="opt_ro"></option>
+							<option value="RU" id="opt_ru"></option>
+							<option value="BL" id="opt_bl"></option>
+							<option value="SM" id="opt_sm"></option>
+							<option value="SA" id="opt_sa"></option>
+							<option value="RS" id="opt_rs"></option>
+							<option value="SG" id="opt_sg"></option>
+							<option value="SK" id="opt_sk"></option>
+							<option value="SI" id="opt_si"></option>
+							<option value="ZA" id="opt_za"></option>
+							<option value="ES" id="opt_es"></option>			
+							<option value="LK" id="opt_lk"></option>
+							<option value="SE" id="opt_se"></option>
+							<option value="CH" id="opt_ch"></option>
+							<option value="SY" id="opt_sy"></option>
+							<option value="TH" id="opt_th"></option>
+							<option value="TT" id="opt_tt"></option>
+							<option value="TN" id="opt_tn"></option>
+							<option value="TR" id="opt_tr"></option>
+							<option value="UA" id="opt_ua"></option>
+							<option value="AE" id="opt_ae"></option>
+							<option value="GB" id="opt_gb"></option>
+							<option value="US" id="opt_us"></option>
+							<option value="UY" id="opt_uy"></option>
+							<option value="UZ" id="opt_uz"></option>
+							<option value="VE" id="opt_ve"></option>
+							<option value="VN" id="opt_vn"></option>			
+						</select>						
+					</div>						
+				</div>	
+				<div class="line" id="tr_band_width" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifi_band_width"></label>
+		            </div>
+					<div class="s-12 l-5 line_form">						
+						<select id="wifi_bandwidth" name="wifi_bandwidth" class="sel_long" onchange="wifi_bandwidth_change();">
+						</select>						
+					</div>					
+				</div>
+				<div class="line" id="tr_wifichannel" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifichannel"></label>
+		            </div>
+					<div class="s-12 l-5 line_form">						
+						<select id="wifi_channel" name="wifi_channel" class="sel_long">
+						</select>						
+					</div>
+					<div class="s-12 l-0" >
+						<a src="#" id="help_wifi_channel"><img  src="../images/help.png" width="30px"  height="30px" /></a>
+					</div>
+				</div>
+				<div class="line " id="tr_beacon_priod" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifi_beacon"></label>
+		            </div>	
+                    <div class="s-12 l-5 line_form">						
+						<input id="wifi_bintval" name="wifi_bintval" style="IME-MODE:disabled;" type="text" size="5" maxlength="4" />     
+					</div>
+				</div>				
+				<div class="line" id="tr_wifi_wifimaxsta" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_wifimaxsta"></label>
+		            </div>
+					<div class="s-12 l-5 line_form">						
+						<select id="wifi_max_sta" name="wifi_max_sta" class="sel_long">
+						</select>						
+					</div>					
+				</div>
+				<!--security--> 
+				<div class="line" id="tr_wifi_securitymode" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_rt_securitymode"></label>
+		            </div>	
+                    <div class="s-12 l-5 line_form">						
+						<select id="wifi_securitymode" name="wifi_securitymode" class="sel_long" onchange="change_security(this.value)" >
+							<option id="sp_wifi_securitymodenone" value="0100,1"> </option>
+							<option id="sp_wifi_securitymode_64_shared" value="0201,2"> </option>
+							<option id="sp_wifi_securitymode_128_shared" value="0201,3"> </option>
+							<option id="sp_wifi_securitymode_64_open" value="0200,4"> </option>
+							<option id="sp_wifi_securitymode_128_open" value="0200,5"> </option>
+							<option id="sp_wifi_securitymodewpatkip" value="0804,6"> </option>
+							<option id="sp_wifi_securitymodewpatkaes" value="0812,7"> </option>
+							<option id="sp_wifi_securitymodewpa2aes" value="3208,8"> </option>
+							<option id="sp_wifi_securitymodewpa2tkaes" value="3212,9"> </option>
+							<option id="sp_wifi_securitymodewpawpa2" value="4012,10"> </option>
+						</select>						
+					</div>						
+				</div>		
+				<div class="line" id="tr_wifi_password" style="display:none">
+				    <div class="s-12 l-5 line_form">
+		                <label class="name" id="td_wifi_password"></label>
+		            </div>
+					<div class="s-12 l-5 line_form">						
+						<input id="wifi_password" name="wifi_password" type="text"  />
+							<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+						<input id="rt_wifi_keyFormat_ascii" name="rt_wifi_keyFormat" type="radio" value="1" checked="checked" style="display: none;" onclick="change_format(this.value,1);"/> <span id="sp_rt_wifi_keyFormat_ascii" class="sp_bold_font_lyy" style="display: none;">ascii</span>
+						<input id="rt_wifi_keyFormat_hex" name="rt_wifi_keyFormat" type="radio" value="0" style="display: none;" onclick="change_format(this.value,1);"/> <span id="sp_rt_wifi_keyFormat_hex" class="sp_bold_font_lyy" style="display: none;">hex</span>
+					</div>						
+				</div>										
+			</div>
+			<div id="user_end" class="line">
+				<div id="user_end_in" class="margin">
+					<div class="s-12 l-7 line_form">
+						<label class="name"> &nbsp;</label>
+					</div>
+					<div class="s-12 l-2">
+						<div id="div_save" class="button" onClick="cgi_submit(0);"><span id="sp_save"></span></div>&nbsp;
+					</div>
+					<div class="s-12 l-2">
+						<div class="button" onclick="window.location=location;"><span id="sp_cancel"></span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+  <br class="clearfloat"/>
+</div>
+
+<script  type="text/javascript" language="javascript">
+function wifi_support_click(value)
+{
+	if (1 == value)
+	{
+		$('#tb_wifi_content').fadeIn(500);
+	}
+	else
+	{
+		$('#tb_wifi_content').fadeOut(200);
+	}
+}
+
+function wifi_max_user_option(max_sta,count)
+{
+	if (parseInt(max_sta) > parseInt(count))
+	{
+	    max_sta = count;
+	}
+	for(i=0; i<count; i++)
+	{
+		E("wifi_max_sta")[i]=new Option(i+1, i+1);
+		if(i+1==max_sta)
+		{ 
+			$("#wifi_max_sta").val(max_sta);
+		} 
+	}
+}
+
+function wifi_bandwidth_change()
+{
+	displayChannel();
+}
+function dispaly_band_width()
+{		
+	$("#wifi_bandwidth").empty();
+	var vv = $("input[name=wifi_interface_type]:checked").val();
+	if(vv == "anc_1" || vv == "anc_2" || vv == "anc_4")
+	{
+		$("#wifi_bandwidth").append('<option id="op_wifi_band_width_20" value="0">'+getalert("op_wifi_band_width_20")+'</option>');
+		$("#wifi_bandwidth").append('<option id="op_wifi_band_width_40" value="2">'+getalert("op_wifi_band_width_40")+'</option>');
+		$("#wifi_bandwidth").append('<option id="op_wifi_band_width_80" value="3">'+"HT80"+'</option>');
+		//E("wifi_bandwidth").value = nvram.wifi_band_width;
+		if(vv == "anc_1")
+		{
+			E("wifi_bandwidth").value = "3";
+		}
+		else if(vv == "anc_2" || vv == "anc_4")
+		{
+			E("wifi_bandwidth").value = "2";
+		}
+	}
+	else
+	{
+		$("#wifi_bandwidth").append('<option id="op_wifi_band_width_20" value="0">'+getalert("op_wifi_band_width_20")+'</option>');
+		//$("#wifi_bandwidth").append('<option id="op_wifi_band_width_40" value="2">'+getalert("op_wifi_band_width_40")+'</option>');
+		$("#wifi_bandwidth").append('<option id="op_wifi_band_width_mix" value="1">'+getalert("op_wifi_band_width_mix")+'</option>');
+
+		if(nvram.wifi_band_width == "2")
+		{
+			E("wifi_bandwidth").value = "1";
+		}
+		else
+		{
+			E("wifi_bandwidth").value = nvram.wifi_band_width;
+		}
+	}
+
+
+	displayChannel();
+}
+function displayChannel()
+{
+	$("#wifi_channel").empty();
+	var vv = $("input[name=wifi_interface_type]:checked").val();
+	//if((E("wifi_reg_domain").value == "JP")&&(vv == "anc"))
+	if(vv == "anc_1" || vv == "anc_2" || vv == "anc_4")
+	{
+		$("#tr_wifichannel").hide();
+		E("wifi_channel").options.length=0;
+		var channel_list = new Array;		
+		var channel_auto =  getalert("opt_wifi_channel_auto");
+		E("wifi_channel")[0] = new Option (channel_auto , 0);
+		
+		if(E("wifi_bandwidth").value =="0")//20M
+		{
+			channel_list[1] = 36;
+			E("wifi_channel")[1] = new Option (36 , 36);
+			channel_list[2] = 40;
+			E("wifi_channel")[2] = new Option (40 , 40);
+			channel_list[3] = 44;
+			E("wifi_channel")[3] = new Option (44 , 44);
+			channel_list[4] = 48;
+			E("wifi_channel")[4] = new Option (48 , 48);
+			channel_list[5] = 52;
+			E("wifi_channel")[5] = new Option (52 , 52);
+			channel_list[6] = 56;
+			E("wifi_channel")[6] = new Option (56 , 56);	
+			channel_list[7] = 60;
+			E("wifi_channel")[7] = new Option (60 , 60);
+			channel_list[8] = 64;
+			E("wifi_channel")[8] = new Option (64 , 64);
+			channel_list[9] = 100;
+			E("wifi_channel")[9] = new Option (100 , 100);	
+			channel_list[10] = 104;
+			E("wifi_channel")[10] = new Option (104 , 104);
+			channel_list[11] = 108;
+			E("wifi_channel")[11] = new Option (108 , 108);
+			channel_list[12] = 112;
+			E("wifi_channel")[12] = new Option (112 , 112);	
+			channel_list[13] = 116;
+			E("wifi_channel")[13] = new Option (116 , 116);
+			channel_list[14] = 120;
+			E("wifi_channel")[14] = new Option (120 , 120);			
+			channel_list[15] = 112;
+			E("wifi_channel")[15] = new Option (124 , 124);	
+			channel_list[16] = 116;
+			E("wifi_channel")[16] = new Option (128 , 128);
+			channel_list[17] = 120;
+			E("wifi_channel")[17] = new Option (132 , 132);			
+			channel_list[18] = 136;
+			E("wifi_channel")[18] = new Option (136 , 136);
+			channel_list[19] = 140;
+			E("wifi_channel")[19] = new Option (140 , 140);			
+		}
+		else if(E("wifi_bandwidth").value =="2")//40M
+		{
+			channel_list[1] = 36;
+			E("wifi_channel")[1] = new Option (36 , 36);
+			channel_list[2] = 40;
+			E("wifi_channel")[2] = new Option (40 , 40);
+			channel_list[3] = 44;
+			E("wifi_channel")[3] = new Option (44 , 44);
+			channel_list[4] = 48;
+			E("wifi_channel")[4] = new Option (48 , 48);
+			channel_list[5] = 52;
+			E("wifi_channel")[5] = new Option (52 , 52);
+			channel_list[6] = 56;
+			E("wifi_channel")[6] = new Option (56 , 56);	
+			channel_list[7] = 60;
+			E("wifi_channel")[7] = new Option (60 , 60);
+			channel_list[8] = 64;
+			E("wifi_channel")[8] = new Option (64 , 64);
+			channel_list[9] = 100;
+			E("wifi_channel")[9] = new Option (100 , 100);	
+			channel_list[10] = 104;
+			E("wifi_channel")[10] = new Option (104 , 104);
+			channel_list[11] = 108;
+			E("wifi_channel")[11] = new Option (108 , 108);
+			channel_list[12] = 112;
+			E("wifi_channel")[12] = new Option (112 , 112);	
+			channel_list[13] = 116;
+			E("wifi_channel")[13] = new Option (116 , 116);
+			channel_list[14] = 120;
+			E("wifi_channel")[14] = new Option (120 , 120);			
+			channel_list[15] = 112;
+			E("wifi_channel")[15] = new Option (124 , 124);	
+			channel_list[16] = 116;
+			E("wifi_channel")[16] = new Option (128 , 128);
+			channel_list[17] = 120;
+			E("wifi_channel")[17] = new Option (132 , 132);			
+			channel_list[18] = 136;
+			E("wifi_channel")[18] = new Option (136 , 136);
+		}
+		else if(E("wifi_bandwidth").value =="3")//80M
+		{
+			channel_list[1] = 36;
+			E("wifi_channel")[1] = new Option (36 , 36);
+			channel_list[2] = 44;
+			E("wifi_channel")[2] = new Option (44 , 44);
+			channel_list[3] = 52;
+			E("wifi_channel")[3] = new Option (52 , 52);
+			channel_list[4] = 60;
+			E("wifi_channel")[4] = new Option (60 , 60);
+			channel_list[5] = 100;
+			E("wifi_channel")[5] = new Option (100 , 100);
+			channel_list[6] = 108;
+			E("wifi_channel")[6] = new Option (108 , 108);	
+			channel_list[7] = 116;
+			E("wifi_channel")[7] = new Option (116 , 116);
+			channel_list[8] = 124;
+			E("wifi_channel")[8] = new Option (124 , 124);			
+		}	
+		$("#wifi_channel").val(channel_auto);
+		//$("#wifi_channel").val(nvram.wifi_channel);
+	}
+	else
+	{
+		$("#tr_wifichannel").show();
+		var channel_auto =  getalert("opt_wifi_channel_auto");	
+		{	
+			var domain_list = new Array;
+			var channel_list = new Array;
+			var max_channel = 11;
+			var channel_auto =  getalert("opt_wifi_channel_auto");
+
+			/* FCC */
+			domain_list[0] = "AE AM AN AR AU AZ BH BL BN BR CL CR CS DZ EC EG GE HN HK ID IL IN JM JO KP KR KW KZ LB LK MA MO MY NP OM PE PG PH PK PT QA SA SG SV SY TH TT TN UY YE ZW VN BO BZ VE NZ";
+			/* FCC1 */
+			domain_list[1] = "CA CO DO GT MX PA PR TW US UZ";
+			/* MKK */
+			domain_list[2] = "JP";
+			/* ETSI */
+			domain_list[3] = "CN AL AD AT BY BE BA BG HR CY CZ DK EE FI FR MK DE GR GB HU IS IE IT LV LI LT LU MT MD MC ME NL NO PL RO RU SM RS SI SK ES SE CH TR UA UK ZA IR";    // modify CHINA from 11 to 13 by lyy in 20121207
+				
+			for (var i = 0; i < domain_list.length; i++)
+			{
+				if (-1 != domain_list[i].indexOf(E("wifi_reg_domain").value))
+				{
+					switch (i)
+					{
+						case 1: /* FCC1 */
+							max_channel = 11;
+							break;
+						case 0:	/* FCC */
+						case 2: /* MKK */
+							max_channel = 13;	// xu qiu yao qiu by lyy in 20120530
+							break;
+						case 3: /* ETSI */
+							max_channel = 13;
+							break;
+						default:
+							max_channel = 13;
+					}
+
+					break;
+				}
+			}
+
+			E("wifi_channel").options.length=0;
+			E("wifi_channel")[0] = new Option (channel_auto , 0);
+			for(var i = 1; i <= max_channel; i++)
+			{
+				channel_list[i] = i;
+				E("wifi_channel")[i]=new Option(i, i);
+			}
+			
+			/* Set current channel, If MAX channel is lower than NV, 
+			 * then set the biggest one default.
+			 */
+			if (nvram.wifi_channel <= max_channel)
+			{
+				$("#wifi_channel").val(nvram.wifi_channel);
+			}
+			else
+			{
+				$("#wifi_channel").val(channel_auto);
+			}
+		}	
+	}
+}
+
+/********************************************************************************
+ *
+ *         Name:  wifi_ssid_value
+ *  Description:  while ssid have '   , page will cannot open
+ *        Parms:  
+ *       Return:                         
+ *       author:  liyongyong
+ *         time:  20121209
+ *        Notes:              
+ ********************************************************************************/
+function wifi_ssid_value(val)
+{
+    $.ajax({
+		url: '/cgi-bin/ajax_get.cgi?which_ajax=database&pram=wlan_ap'+val+'_ssid',
+		type: 'post',
+		complete: function (xhr) 
+		{
+		    if ('' != xhr.responseText)
+			{	
+			    var tmp = xhr.responseText;
+				
+				E('wifi_ssid').value=tmp;
+			}
+			else
+			{
+			
+			}
+		}
+	});
+}
+/*
+ * 设置wifi安全模式密码
+ */
+function set_wifi_password(v)
+{
+	var s = v.split(',');
+	var which = s[1]*1;
+
+	switch (which) 
+	{
+		case 1:
+			wep_format_radio_show = 0;
+			$("#tr_wifi_password").hide();
+			break;	
+		case 2:
+		case 4:	
+			E("wifi_password").value = nvram.wifi_wep_password;
+			if (10 == (nvram.wifi_wep_password).length)
+			{
+				E("wifi_password").maxLength = 10;
+			}
+			
+			wep_format_radio_show = 1;
+			break;
+		case 3:
+		case 5:
+			E("wifi_password").value = nvram.wifi_wep_password;
+			if (26 == (nvram.wifi_wep_password).length)
+			{
+				E("wifi_password").maxLength = 26;
+			}
+			
+			wep_format_radio_show = 1;
+			break;
+		case 6:	
+		case 7:	
+		case 8:	
+		case 9:	
+		case 10:
+			E("wifi_password").value = nvram.wifi_password;
+			
+			wep_format_radio_show = 0;
+			break;
+	}
+}
+
+
+function init_pro_wrong_input_css()    // remove all input wrong_color_alert style by lyy in 20120927
+{
+	$("#wifi_password").removeClass("wrong_color_alert");
+}
+/* 每当加密方式改变后，需要改变wifi_password的状态和长度 */
+function change_security(value)
+{
+	var wep_format;
+	var s = value.split(',');
+	var which = s[1]*1;
+
+	wep_format_lyy = "hex";		// 每次改变单选按钮时，还原password格式为hex
+	wep_format = wep_format_lyy;
+	
+	init_pro_wrong_input_css();
+    	
+	if(which == 1)
+	{
+	    E("wifi_password").value = "";
+	    $("#tr_wifi_password").hide();
+	}
+	else if (which > 10)
+	{
+		E("wifi_password").value = "";
+	    $("#tr_wifi_password").hide();		
+	}
+	else
+	{
+	    $("#tr_wifi_password").show();
+	}
+
+	switch (which) 
+	{
+	    case 1:
+            break;		
+		case 2:
+			setLimitLen(E("wifi_password"), "64", wep_format);
+			break;	
+		case 3:
+			setLimitLen(E("wifi_password"), "128", wep_format);
+			break;	
+		case 4:	
+			setLimitLen(E("wifi_password"), "64", wep_format);
+			break;		
+		case 5:
+			setLimitLen(E("wifi_password"), "128", wep_format);
+			break;	
+		case 6:		
+		case 7:			
+		case 8:		
+		case 9:			
+		case 10:
+			setLimitLen(E("wifi_password"), "", "wpa");
+			break;
+		default:
+		    break;
+	}
+}
+
+function wifi_frequency_change(where)
+{
+
+	var vv = $("input[name=wifi_interface_type]:checked").val();
+	if(vv == "bgn")
+	{
+		if(nvram.wifi_band_width == "3")
+		{
+			nvram.wifi_band_width = "1";
+		}
+		if(where == 1)
+		{
+			if(nvram.wifi_mode != "anc" )
+			{
+				E("wifi_reg_interface_2").value = nvram.wifi_mode;
+			}
+			else
+			{
+				E("wifi_reg_interface_2").value = "bgn";
+			}
+
+		}
+		$("#tr_wifiinterface_2").show();
+		$("#tr_wifiinterface_5g").hide();		
+	}
+	else
+	{		
+		if(nvram.wifi_band_width == "1")
+		{
+			nvram.wifi_band_width = "3";
+		}
+		$("#tr_wifiinterface_2").hide();
+		$("#tr_wifiinterface_5g").show();		
+	}	
+	dispaly_band_width();
+	$("#user_end").show();
+}
+
+
+function wifi_switch_change()
+{
+	var vv = $("input[name=wifi_enable]:checked").val();
+	ap_type = (getParameter("type",(location.href).replace(/%20/g," "))).split("=")[1];
+	if(vv == "1")
+	{
+		if(ap_type == "1")
+		{
+			if(ap_disable_enable == "0")
+			{
+				wifi_max_user_option(max_sta_t,15);
+			}
+			else
+			{
+				wifi_max_user_option(max_sta_t,7);
+			}
+			
+		}
+		else
+		{
+			if(ap1_disable_enable == "0")
+			{
+				wifi_max_user_option(max_sta_t,15);
+			}
+			else
+			{
+				wifi_max_user_option(max_sta_t,8);
+			}
+		}
+		$("#tr_beacon_priod").show();
+		//$("#tr_wifiregdom").show();
+		$("#tr_wifiinterface").show();
+		if(ap_type == "1")
+		{
+			$("#tr_wifiinterface_56").hide();
+		}
+		else
+		{
+			$("#tr_wifiinterface_56").show();
+		}
+
+		$("#tr_ssid_broad").show();
+		$("#tr_ssid_wifissid").show();
+		$("#tr_wifi_wifimaxsta").show();
+		$("#tr_wifi_securitymode").show();
+		$("#tr_wifi_password").show();
+		$("#user_end").show();
+		$("#tr_band_width").show();	
+		$("#tr_wifichannel").show();
+		change_security($("#wifi_securitymode").val());
+		set_wifi_password($("#wifi_securitymode").val());
+		wifi_frequency_change(0);
+
+		if((nvram.wifi_dfs_mode_s0 == "2" || nvram.wifi_dfs_mode_s0 == "4" || nvram.wifi_dfs_mode_s0 == "1")&& ap_type == "1" && nvram.wifi_enable_s0 == "1")
+		{
+			$("#tr_beacon_priod").hide();
+			$("#tr_wifichannel").hide();
+			$("#tr_wifiregdom").hide();
+			$("#tr_wifiinterface").hide();
+			$("#tr_wifiinterface_56").hide();
+			$("#tr_wifiinterface_2").hide();
+			$("#tr_wifiinterface_5g").hide();
+			$("#tr_band_width").hide();
+			$("#tr_ssid_broad").hide();
+			$("#tr_ssid_wifissid").hide();
+			$("#tr_wifi_wifimaxsta").hide();
+			$("#tr_wifi_securitymode").hide();
+			$("#tr_wifi_password").hide();
+			$("#user_end").show();
+		}
+	}
+	else
+	{
+		wifi_max_user_option(max_sta_t,7);
+		$("#tr_beacon_priod").hide();
+		$("#tr_wifichannel").hide();
+		$("#tr_wifiregdom").hide();
+		$("#tr_wifiinterface").hide();
+		$("#tr_wifiinterface_56").hide();
+		$("#tr_wifiinterface_2").hide();
+		$("#tr_wifiinterface_5g").hide();
+		$("#tr_band_width").hide();	
+		$("#tr_ssid_broad").hide();
+		$("#tr_ssid_wifissid").hide();
+		$("#tr_wifi_wifimaxsta").hide();
+		$("#tr_wifi_securitymode").hide();
+		$("#tr_wifi_password").hide();
+		$("#user_end").show();
+	}
+	
+}
+
+function checkForm()
+{
+	return true;
+}
+
+function checkForm_self()
+{
+	if($("input[name=wifi_support]:checked").val() =="1") 
+	{
+		if($("input[name=wifi_enable]:checked").val() =="1") 
+		{
+			var flag_alert_wpsoff = 0;
+			// ssid value
+			if(!check_wifi_ssid("wifi_ssid")) 
+			{
+				return false;
+			}
+			
+			lc_mousedown_fade(E("wifi_bintval").id);
+			
+			if(check_number(E("wifi_bintval").value) == false)
+			{
+				lc_alert('alert_wifi_binval_invalid_num');
+				lc_wrong_color(E("wifi_bintval").id);
+				
+				return false;
+			}
+			if((E("wifi_bintval").value-0) == "")
+			{
+				lc_alert('alert_wifi_binval_empty');
+				lc_wrong_color(E("wifi_bintval").id);
+				
+				return false;
+			}
+			if((E("wifi_bintval").value-0)<100 || (E("wifi_bintval").value-0)>4000)
+			{
+				lc_alert('alert_wifi_binval');
+				lc_wrong_color(E("wifi_bintval").id);
+				
+				return false;
+			}
+			if((E("wifi_bintval").value-0)%100!=0)
+			{
+				lc_alert('alert_wifi_binval_100');
+				lc_wrong_color(E("wifi_bintval").id);
+				return false;
+			}
+			
+			// wps must off while broadcast disable add by lyy in 20120510
+			if ($("input[name=wifi_ssidbroadcast]:checked").val() == "0")
+			{
+				if(confirm(getalert('alert_broadcastoff_wpsoff'))==false)
+				{
+					return false;
+				}
+				else
+				{
+					flag_alert_wpsoff = 1;
+				}
+			}
+			// security and password
+			var ssid1 = E("wifi_password");
+			
+			E("wifi_wep_password").value = 0;	// 1：为WEP方式加密
+			var vv = $("#wifi_securitymode").val();
+			var s = vv.split(',');
+			var which = s[1]*1;
+			
+			/************************ check ssid security****************/
+			lc_mousedown_fade(ssid1.id);
+			
+			if(which==1)
+			{
+				E("wifi_password").value = '';	
+				return true;
+			}
+			
+			if(which!=1&&ssid1.value==""&&which <= 10)
+			{
+				lc_alert('alert_wifi_security_invalid_wpa');
+				lc_wrong_color(ssid1.id);
+				E("wifi_password").focus();
+				return false;
+			}
+
+			if(which==2||which==3||which==4||which==5)
+			{
+				if (check_wifi_password_length(which, ssid1.value) == false)
+				{
+					lc_wrong_color(ssid1.id);
+					E("wifi_password").focus();
+					return false;
+				}
+				
+				if (check_wifi_Wep_password(which,ssid1)==false) 
+				{
+					lc_wrong_color(ssid1.id);
+					E("wifi_password").focus();
+					return false;
+				}
+				
+				E("wifi_wep_password").value = 1;
+			}
+			else if(which==6||which==7||which==8||which==9||which==10)
+			{
+				if (check_wifi_Wpa_password(E("wifi_password").value)==false) 
+				{
+					lc_wrong_color(ssid1.id);
+					E("wifi_password").focus();
+					return false;
+				}
+			}
+			else if (which > 10)    // for 8021x
+			{
+				
+			}
+			
+			if(nvram.wifi_wps_enable == 1)
+			{
+				if( flag_alert_wpsoff == 0 && 
+				(E("sp_wifi_securitymode_64_shared").selected == true || 
+				E("sp_wifi_securitymode_128_shared").selected == true || 
+				E("sp_wifi_securitymode_64_open").selected == true || 
+				E("sp_wifi_securitymode_128_open").selected == true ||
+				E("sp_wifi_securitymodewpatkip").selected == true ||
+				E("sp_wifi_securitymodewpatkaes").selected == true ||
+				E("sp_wifi_securitymodewpa2tkaes").selected == true ||
+				E("sp_wifi_securitymodewpawpa2").selected == true))
+				{
+			
+					if(confirm(getalert("alert_security_wpsoff"))==false)
+						return false;
+					else
+					{
+						return true;
+					}
+				}
+			}
+		}		
+	}
+
+	return true;
+}
+ /*$('#lct_show_mac_list_connected').click(function (e){
+		window.parent.fnopen_remmac_list('List of connected devices','lct_connect_pc_network.html');
+	});*/
+
+
+function cgi_submit(val)
+{
+	if((nvram.wifi_dfs_mode_s0 == "2" || nvram.wifi_dfs_mode_s0 == "4" || nvram.wifi_dfs_mode_s0 == "1") && ap_type == "1" && nvram.wifi_enable_s0 == "1")
+	{
+		window.location=location;
+		return;
+	}
+
+	if(checkForm_self())
+	{
+		var wifi_interface_t = $("input[name=wifi_interface_type]:checked").val();
+		if( wifi_interface_t =="anc_1" || wifi_interface_t =="anc_2" || wifi_interface_t =="anc_4") {
+			E("wifi_interface").value = "anc";
+			if (wifi_interface_t == "anc_1")
+			{
+				E("wifi_dfs_mode").value = "1";
+			}
+			else if (wifi_interface_t == "anc_2")
+			{
+				E("wifi_dfs_mode").value = "2";
+			}
+			else
+			{
+				E("wifi_dfs_mode").value = "4";
+			}
+		}
+		else
+		{
+			E("wifi_interface").value = $("#wifi_reg_interface_2").val();
+			E("wifi_dfs_mode").value = "0";
+		}
+		webpage_submit('lct_wifi_network_form');
+	}
+}
+
+</script>
+</form>
+
+</body>
+</html>
